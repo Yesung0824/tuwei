@@ -43,3 +43,20 @@ select server_id , date , count(distinct ctwid) as pay_role ,
 from test1
 group by 1,2 
 
+
+--计算分区数据概况
+select a.server_id , count(distinct a.ctwid) as act_role , count(distinct b.ctwid) as pay_num , sum(pay_amt) as pay_total 
+from 
+(
+select server_id , ctwid
+from createrole_login_record
+group by 1,2
+) a 
+left join 
+(
+select server_id , ctwid , pay_amt
+from test1
+group by 1,2,3
+) b 
+on a.server_id = b.server_id and a.ctwid = b.ctwid
+group by 1
