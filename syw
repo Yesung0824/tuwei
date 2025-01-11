@@ -1,0 +1,45 @@
+--计算分服每日新增用户分布
+select server_id , dt , count(distinct ctwid) as new_role
+from createrole_login_record
+where type = 'g_createrole'
+group by 1,2 
+
+--计算分服日活
+select server_id , dt , count(distinct ctwid) as act_role
+from createrole_login_record
+where type = 'g_login'
+group by 1,2 
+
+--计算滚服用户
+select b.dt , count(distinct a.ctwid) as gun_role
+from 
+(
+select server_id , dt , ctwid
+from createrole_login_record
+where type = 'g_createrole'
+group by 1,2,3
+) a 
+inner join 
+(
+select server_id , dt , ctwid
+from createrole_login_record
+where type = 'g_login'
+group by 1,2,3
+) b 
+on a.ctwid = b.ctwid
+where a.server_id != b.server_id 
+group by 1 
+
+--计算活跃用户人均日活时长
+select dt , round(sum(session_length)/(60*count(distinct ctwid)),2) as day_min 
+from user_daily_session_length_record
+where ctwid in (select ctwid from createrole_login_record where type = 'g_login')
+group by dt 
+
+--计算基本付费情况
+select server_id , date , count(distinct ctwid) as pay_role , 
+       sum(pay_amt) as pay_total ,
+       round(sum(pay_amt)/count(distinct ctwid),2) as arppu 
+from test1
+group by 1,2 
+
